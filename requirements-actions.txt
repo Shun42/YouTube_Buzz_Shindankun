@@ -1,0 +1,16 @@
+pandas
+numpy
+python-dotenv
+requests
+google-api-python-client
+youtube-transcript-api
+pycld2
+mecab-python3
+unidic-lite
+spacy
+https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
+asari
+nltk
+vaderSentiment
+jp-stopword-filter
+openpyxl
