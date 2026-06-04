@@ -1,0 +1,126 @@
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #f4fbff, #f1fff8, #f7fffb);
+    color: #2f3a3a;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 16px;
+    padding: 32px 20px;
+    box-sizing: border-box;
+}
+
+canvas,
+.wordcloud-panel,
+.compare-panel {
+    width: min(100%, 960px);
+}
+
+canvas {
+    display: block;
+    max-height: 420px;
+}
+
+.wordcloud-panel {
+    height: 360px;
+}
+
+.wordcloud-panel canvas {
+    height: 100%;
+    max-height: none;
+}
+
+.container {
+    width: 90%;
+    max-width: 480px;
+    padding: 40px;
+    background: rgba(255, 255, 255, 0.92);
+    border-radius: 24px;
+    box-shadow: 0 20px 40px rgba(120, 170, 180, 0.22);
+    text-align: center;
+    border: 1px solid rgba(190, 230, 225, 0.9);
+    backdrop-filter: blur(8px);
+}
+
+.badge {
+    display: inline-block;
+    padding: 6px 14px;
+    margin-bottom: 18px;
+    border-radius: 999px;
+    background: #e6f7f3;
+    color: #2f9e8f;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+h1 {
+    margin: 0 0 12px;
+    font-size: 32px;
+    letter-spacing: 1px;
+    color: #243b3f;
+}
+
+.description {
+    margin-bottom: 32px;
+    color: #657579;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+label {
+    text-align: left;
+    color: #4f6367;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+select {
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid #cce8e5;
+    background: #ffffff;
+    color: #2f3a3a;
+    font-size: 16px;
+    outline: none;
+}
+
+select:focus {
+    border-color: #7ccfc2;
+    box-shadow: 0 0 0 3px rgba(124, 207, 194, 0.25);
+}
+
+button {
+    margin-top: 8px;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    background: #57b8a8;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover {
+    background: #45a394;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(87, 184, 168, 0.35);
+}
+
+.footer-text {
+    margin-top: 24px;
+    color: #9aa8aa;
+    font-size: 12px;
+}

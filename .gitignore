@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local environment variables and secrets
+.env
+*.env
+backend/.env
+
+# Generated data and local database outputs
+backend/data/
+data/
+*.sqlite
+*.sqlite3
+*.csv
+*.xlsx
+*.xls
+*.pkl
+*.pickle
+*.joblib
+*.log
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

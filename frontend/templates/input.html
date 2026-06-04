@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YOUTUBE BUZZ ANALYZER</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/input_style.css') }}">
+</head>
+<body>
+    <main class="container">
+        <div class="badge">PORTFOLIO TOOL</div>
+
+        <h1>YOUTUBE BUZZ ANALYZER</h1>
+
+        <p class="description">
+            YouTube動画のデータを収集・分析し、バズ要因を可視化する分析ツールです。
+        </p>
+
+        <form action="/run" method="POST">
+            <label for="mode">Analysis Mode</label>
+
+            <select id="mode" name="mode">
+                <option value="analyze">分析</option>
+                <option value="collect">データ収集</option>
+                <option value="NLP_analyze">NLP分析</option>
+            </select>
+
+            <button id="triggerButton" type="submit">Run Analysis</button>
+        </form>
+        <div class="features">
+            <div>・再生数、コメント、字幕の分析</div>
+            <div>・NLPによる強い言葉の抽出</div>
+            <div>・バズ要因のスコアリング</div>
+            <div>を行い、再生数を説明します。</div>
+        </div>
+        <p class="footer-text">
+            Python / Flask / YouTube Data API / NLP
+        </p>
+    </main>
+</body>
+</html>
