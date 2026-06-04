@@ -17,8 +17,9 @@ env/
 backend/.env
 
 # Generated data and local database outputs
-backend/data/
-data/
+backend/data/*
+!backend/data/youtube.db
+/data/
 *.sqlite
 *.sqlite3
 *.csv
