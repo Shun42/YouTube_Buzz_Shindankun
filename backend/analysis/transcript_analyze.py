@@ -101,9 +101,13 @@ def NLP_analysis_jp(text):
 
 # 英語のNLP分析
 def NLP_analysis_en(text):
-    nlp = spacy.load('en_core_web_sm')
+    global _spacy_nlp
+
+    if _spacy_nlp is None:
+        _spacy_nlp = spacy.load('en_core_web_sm')
+
     tokens = []
-    doc = nlp(text)
+    doc = _spacy_nlp(text)
     target_pos = ["ADJ","NOUN","PROPN","VERB"]
     for token in doc:
         if token.pos_ in target_pos:
@@ -131,6 +135,8 @@ def transcript_SQL():
 
 
 _vader_analyzer = None
+_sonar_analyzer = None
+_spacy_nlp = None
 
 # vader_analyzerの起動
 def _get_vader_analyzer():
@@ -144,6 +150,15 @@ def _get_vader_analyzer():
         _vader_analyzer = SentimentIntensityAnalyzer()
 
     return _vader_analyzer
+
+
+def _get_sonar_analyzer():
+    global _sonar_analyzer
+
+    if _sonar_analyzer is None:
+        _sonar_analyzer = Sonar()
+
+    return _sonar_analyzer
 
 # 言語検知
 def language_detect(text):
@@ -171,7 +186,7 @@ def language_detect(text):
 
 # 日本語のセンチメント分析
 def sentiment_analysis_jp(text):
-    sonar = Sonar()
+    sonar = _get_sonar_analyzer()
     analyze_result = sonar.ping(text)
     negative_score = analyze_result["classes"][0]["confidence"]
     positive_score = analyze_result["classes"][1]["confidence"]

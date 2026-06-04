@@ -7,6 +7,7 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import time
 import datetime
 _vader_analyzer = None
+_sonar_analyzer = None
 
 # 残り時間の推定
 def _print_remaining_time(label, starttime, processed_count, total_count):
@@ -36,6 +37,15 @@ def _get_vader_analyzer():
 
     return _vader_analyzer
 
+
+def _get_sonar_analyzer():
+    global _sonar_analyzer
+
+    if _sonar_analyzer is None:
+        _sonar_analyzer = Sonar()
+
+    return _sonar_analyzer
+
 # 言語検知
 def language_detect(text):
     try:
@@ -62,7 +72,7 @@ def language_detect(text):
 
 # 日本語のコメントの感情分析
 def sentiment_analysis_jp(text):
-    sonar = Sonar()
+    sonar = _get_sonar_analyzer()
     analyze_result = sonar.ping(text)
     # 感情極性スコア
     negative_score = analyze_result["classes"][0]["confidence"]
