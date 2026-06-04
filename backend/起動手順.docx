@@ -1,6 +1,0 @@
-cd C:\Python Projects\youtube_buzz_analyzer_v2
-conda activate youtube_buzz_analyzer
-
-python -m backend.background_process
-
-python backend\main.py
