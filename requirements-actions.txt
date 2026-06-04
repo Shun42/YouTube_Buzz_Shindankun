@@ -15,3 +15,7 @@ nltk
 vaderSentiment
 jp-stopword-filter
 openpyxl
+lightgbm
+scikit-learn
+matplotlib
+shap
