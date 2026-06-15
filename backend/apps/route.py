@@ -1,4 +1,4 @@
-from flask import redirect, url_for, render_template, request, jsonify
+from flask import redirect, url_for, render_template, request, jsonify, Response
 import threading
 import uuid
 import main_process
@@ -72,6 +72,10 @@ def classify(row, transcript_threshold, comments_threshold):
     
 # 起動画面
 def register_routes(app):
+    @app.route("/favicon.ico")
+    def favicon():
+        return Response(status=204)
+
     @app.route("/", methods=["GET"])
     def booting():
         return render_template("input.html")
@@ -363,7 +367,6 @@ def register_routes(app):
                 "buzz_type": row["buzz_type"],
                 "comparisons": comparisons
             })
-
         return jsonify({
             "features": [FEATURE_LABELS.get(feature, feature) for feature in feature_cols],
             "videos": result_data

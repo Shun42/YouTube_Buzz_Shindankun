@@ -1,3 +1,5 @@
+import { fetchJson } from "./fetch_json.js";
+
  // グラフを保持する変数
 let scatterChartHighbuzz;
 let scatterChartLowbuzz;
@@ -5,11 +7,8 @@ let scatterChartLowbuzz;
 async function createscatterChart(feature) {
             const encodedFeature = encodeURIComponent(feature);
             // Flask APIへアクセス
-            const response_scatter_high_buzz = await fetch(`/api/scatter/highbuzz/${encodedFeature}`);
-            // JSONへ変換
-            const scatter_data_high_buzz = await response_scatter_high_buzz.json();
-            const response_scatter_low_buzz = await fetch(`/api/scatter/lowbuzz/${encodedFeature}`);
-            const scatter_data_low_buzz = await response_scatter_low_buzz.json();
+            const scatter_data_high_buzz = await fetchJson(`/api/scatter/highbuzz/${encodedFeature}`);
+            const scatter_data_low_buzz = await fetchJson(`/api/scatter/lowbuzz/${encodedFeature}`);
 
             // canvas取得
             const ctx_two = document.getElementById("scatterChartHigh");
@@ -131,8 +130,8 @@ export function setupScatterChartEvents() {
             }
 
             featureSelect.addEventListener("change", function () {
-                createscatterChart(this.value);
+                createscatterChart(this.value).catch(error => console.error(error));
             });
 
-            createscatterChart(featureSelect.value);
+            createscatterChart(featureSelect.value).catch(error => console.error(error));
         }

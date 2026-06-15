@@ -10,11 +10,18 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function initResultCharts() {
-    createSHAPChart();
+    Promise.allSettled([
+        createSHAPChart(),
+        createtimelineChart(),
+        createwordcloudChart(),
+        createStrongWordsScatter(),
+        loadCompareVideoOptions()
+    ]).then(results => {
+        results
+            .filter(result => result.status === "rejected")
+            .forEach(result => console.error(result.reason));
+    });
+
     setupScatterChartEvents();
-    createtimelineChart();
-    createwordcloudChart();
-    createStrongWordsScatter();
-    loadCompareVideoOptions();
     setupCompareVideoEvents();
 }

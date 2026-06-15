@@ -1,9 +1,10 @@
+import { fetchJson } from "./fetch_json.js";
+
 let comparisonCharts = [];
 // 'output_df' から 'video_id' と 'title' を取り出して、JSONで返す
 // 返ってきたデータから"compareVideoSelect"を生成する
 export async function loadCompareVideoOptions() {
-    const response = await fetch("/api/analyze_videos/");
-    const videos = await response.json();
+    const videos = await fetchJson("/api/analyze_videos/");
     const select = document.getElementById("compareVideoSelect");
     select.innerHTML = "";
 
@@ -24,6 +25,10 @@ function createDeviationChart(canvas, video) {
     const comparisons = video.comparisons.filter(item => item.deviation !== null);
     const labels = comparisons.map(item => item.feature);
     const deviations = comparisons.map(item => Number(item.deviation.toFixed(1)));
+    const minDeviation = Math.min(...deviations);
+    const maxDeviation = Math.max(...deviations);
+    const axisMin = Math.floor(Math.min(0, minDeviation) / 10) * 10;
+    const axisMax = Math.ceil(Math.max(100, maxDeviation) / 10) * 10;
     const colors = deviations.map(value =>
         value >= 50 ? "rgba(54, 162, 235, 0.75)" : "rgba(255, 159, 64, 0.75)"
     );
@@ -44,8 +49,8 @@ function createDeviationChart(canvas, video) {
             maintainAspectRatio: false,
             scales: {
                 x: {
-                    min: 0,
-                    suggestedMax: 100,
+                    min: axisMin,
+                    suggestedMax: axisMax,
                     title: {
                         display: true,
                         text: "偏差値"
@@ -91,8 +96,7 @@ async function compareSelectedVideos() {
     
     // URLパラメータにしてAPIへ送る
     status.textContent = "比較データを取得中...";
-    const response = await fetch(`/api/analyze_result/?${params.toString()}`);
-    const result = await response.json();
+    const result = await fetchJson(`/api/analyze_result/?${params.toString()}`);
 
     // 返ってきたvideosを1件ずつ処理
     result.videos.forEach((video, index) => {
@@ -131,6 +135,14 @@ export function setupCompareVideoEvents() {
     const compareButton = document.getElementById("compareVideosButton");
 
     if (compareButton) {
-        compareButton.addEventListener("click", compareSelectedVideos);
+        compareButton.addEventListener("click", () => {
+            compareSelectedVideos().catch(error => {
+                console.error(error);
+                const status = document.getElementById("comparisonStatus");
+                if (status) {
+                    status.textContent = "比較データの取得に失敗しました。";
+                }
+            });
+        });
     }
 }

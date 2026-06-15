@@ -1,3 +1,5 @@
+import { fetchJson } from "./fetch_json.js";
+
 // グラフを保持する変数
 let timelineChartbuzz;
 let timelineChartnonbuzz;
@@ -5,11 +7,8 @@ let timelineChartnonbuzz;
 // グラフを作る関数
 export async function createtimelineChart() {
     // Flask APIへアクセス
-    const response_timeline_buzz = await fetch("/api/timeline/buzz/");
-    // JSONへ変換
-    const timeline_data_buzz = await response_timeline_buzz.json();
-    const response_timeline_non_buzz = await fetch("/api/timeline/nonbuzz/");
-    const timeline_data_non_buzz = await response_timeline_non_buzz.json();
+    const timeline_data_buzz = await fetchJson("/api/timeline/buzz/");
+    const timeline_data_non_buzz = await fetchJson("/api/timeline/nonbuzz/");
     const labels_buzz = timeline_data_buzz.map(item => item.section)
     const wordcount_buzz = timeline_data_buzz.map(item => item.wordCountRate)
     const labels_non_buzz = timeline_data_non_buzz.map(item => item.section)

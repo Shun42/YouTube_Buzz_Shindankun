@@ -1,12 +1,12 @@
+import { fetchJson } from "./fetch_json.js";
+
 // グラフを保持する変数
 let SHAP_chart;
 
 // グラフを作る関数
 export async function createSHAPChart() {
     // Flask APIへアクセス
-    const response = await fetch("/api/shap");
-    // JSONへ変換
-    const shap_data = await response.json();
+    const shap_data = await fetchJson("/api/shap");
     const labels = shap_data.map(item => item.feature);
     const importances = shap_data.map(item => item.importance);
     console.log(shap_data);

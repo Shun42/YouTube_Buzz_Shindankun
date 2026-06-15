@@ -1,7 +1,8 @@
 
+import { fetchJson } from "./fetch_json.js";
+
 export async function createStrongWordsScatter() {
-    const response = await fetch("/api/strong_words_scatter/");
-    const result = await response.json();
+    const result = await fetchJson("/api/strong_words_scatter/");
 
     const rawData = result.data;
     const transcriptThreshold = result.thresholds.transcript;

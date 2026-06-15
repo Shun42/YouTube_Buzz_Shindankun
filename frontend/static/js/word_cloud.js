@@ -1,3 +1,5 @@
+import { fetchJson } from "./fetch_json.js";
+
 
 // グラフを保持する変数
 let word_cloud_comment;
@@ -39,13 +41,9 @@ function createWordCloudSizes(items, minSize = 12, maxSize = 42) {
 // グラフを作る関数
 export async function createwordcloudChart() {
     // Flask APIへアクセス
-    const response_comment = await fetch("/api/wordcloud/comment/");
-    // JSONへ変換
-    const comment_data = await response_comment.json();
-    const response_tag = await fetch("/api/wordcloud/tag/");
-    const tag_data = await response_tag.json();
-    const response_word = await fetch("/api/wordcloud/word/");
-    const word_data = await response_word.json();
+    const comment_data = await fetchJson("/api/wordcloud/comment/");
+    const tag_data = await fetchJson("/api/wordcloud/tag/");
+    const word_data = await fetchJson("/api/wordcloud/word/");
     const word_comment = comment_data.map(item => item.word)
     const count_comment = createWordCloudSizes(comment_data, 12, 40)
     const word_tag = tag_data.map(item => item.word)

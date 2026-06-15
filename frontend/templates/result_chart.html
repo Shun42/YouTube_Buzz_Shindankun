@@ -14,8 +14,7 @@
     <script type="module" src="{{ url_for('static', filename='js/result_chart.js') }}"></script>
 
 
-    <h1>SHAPグラフ</h1>
-    <h3>各特徴量がどれくらいバズに関係しているか</h3>
+    <h1>各要素の再生数への影響度</h1>
 
     <!-- グラフ描画エリア -->
     <canvas id="SHAPChart"></canvas>
@@ -32,9 +31,9 @@
     <canvas id="scatterChartLow"></canvas>
 
 
-    <h1>動画の各セクションごとの盛り上がり度(バズ動画)</h1>
+    <h1>動画各場面ごとの盛り上がり度(バズ動画)</h1>
     <canvas id="timelineChartbuzz"></canvas>
-    <h1>動画の各セクションごとの盛り上がり度(非バズ動画)</h1>
+    <h1>動画各場面ごとの盛り上がり度(非バズ動画)</h1>
     <canvas id="timelineChartnonbuzz"></canvas>
 
 
@@ -51,10 +50,9 @@
         <canvas id="wordCloud_word"></canvas>
     </div>
 
-    <h1>各strong_wordsのスコアによるバズ傾向の分類</h1>
-    <div>strong_words:動画の字幕やコメントに含まれる感情的・音楽的に強い反応を示す単語を数値化した特徴量</div>
+    <h1>再生数に結びつきやすい単語(strong_words)の量によるバズ傾向の分類</h1>
     <div>「最高」「神曲」「泣いた」「衝撃」「ブレイクダウン」など、視聴者の印象に残りやすい語がいくつあるのかを<br>
-    transcriptとcommentで計算しています</div>
+    transcriptとcommentでstrong_wordsとして計算しています</div>
     <div>※いずれの数値も対数で算出しています</div>
     <ul>
         <li>transcriptとcomment両方のstrong_wordsスコアが高い→本物バズ</li>
