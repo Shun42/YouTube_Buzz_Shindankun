@@ -1,80 +1,76 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <title>分析結果</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/result_style.css') }}">
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-wordcloud@4.4.5/build/index.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+  <meta charset="UTF-8">
+  <title>分析結果</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/result_style.css') }}">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-wordcloud@4.4.5/build/index.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
 </head>
 
 <body>
-    <script type="module" src="{{ url_for('static', filename='js/result_chart.js') }}"></script>
+  <script type="module" src="{{ url_for('static', filename='js/result_chart.js') }}"></script>
+
+  <h1>各要素の再生数への影響度</h1>
+
+  <!-- グラフ描画エリア -->
+  <canvas id="SHAPChart"></canvas>
 
 
-    <h1>各要素の再生数への影響度</h1>
 
-    <!-- グラフ描画エリア -->
-    <canvas id="SHAPChart"></canvas>
-        <h1>散布図(各特徴量ごと)</h1>
-        <select id="featureSelect">
-        {% for feature in feature_labels %}
-        <option value="{{ feature }}">{{ feature }}</option>
-        {% endfor %}
-    </select>
-
-    <h2>再生数と各特徴量の相関(バズ動画)</h2>
-    <canvas id="scatterChartHigh"></canvas>
-    <h2>再生数と各特徴量の相関(非バズ動画)</h2>
-    <canvas id="scatterChartLow"></canvas>
+  <h1>動画各場面ごとの盛り上がり度(バズ動画)</h1>
+  <canvas id="timelineChartbuzz"></canvas>
+  <h1>動画各場面ごとの盛り上がり度(非バズ動画)</h1>
+  <canvas id="timelineChartnonbuzz"></canvas>
 
 
-    <h1>動画各場面ごとの盛り上がり度(バズ動画)</h1>
-    <canvas id="timelineChartbuzz"></canvas>
-    <h1>動画各場面ごとの盛り上がり度(非バズ動画)</h1>
-    <canvas id="timelineChartnonbuzz"></canvas>
+  <h1>コメントの頻出ワードのワードクラウド</h1>
+  <div class="wordcloud-panel">
+    <canvas id="wordCloud_comment"></canvas>
+  </div>
+  <h1>動画タグの頻出ワードのワードクラウド</h1>
+  <div class="wordcloud-panel">
+    <canvas id="wordCloud_tag"></canvas>
+  </div>
+  <h1>動画タイトルの頻出ワードのワードクラウド</h1>
+  <div class="wordcloud-panel">
+    <canvas id="wordCloud_word"></canvas>
+  </div>
 
-
-    <h1>コメントの頻出ワードのワードクラウド</h1>
-    <div class="wordcloud-panel">
-        <canvas id="wordCloud_comment"></canvas>
+  <h1>再生数に結びつきやすい単語(strong_words)の量によるバズ傾向の分類</h1>
+  <div>「最高」「神曲」「泣いた」「衝撃」「ブレイクダウン」など、視聴者の印象に残りやすい語がいくつあるのかを<br>
+  transcriptとcommentでstrong_wordsとして計算しています</div>
+  <div>※いずれの数値も対数で算出しています</div>
+  <ul>
+    <li>transcriptとcomment両方のstrong_wordsスコアが高い→本物バズ</li>
+    <li>transciptのみstrong_wordsスコアが高い→釣り・内容先行型</li>
+    <li>commentのみstrong_wordsスコアが高い→共感型</li>
+    <li>どちらもスコアが低い→低反応型</li>
+  </ul>
+  <div>各しきい値:全体の75%</div>
+  <canvas id="strongWordsScatter"></canvas>
+  <div id="strong_words_scatter_videos"></div>
+  <section class="compare-panel">
+    <h1>動画比較</h1>
+    <div class="compare-controls">
+      <label>
+        動画タイトル
+        <select id="compareVideoSelect" multiple></select>
+      </label>
+      <button type="button" id="compareVideosButton">選択した動画を比較</button>
     </div>
-    <h1>動画タグの頻出ワードのワードクラウド</h1>
-    <div class="wordcloud-panel">
-        <canvas id="wordCloud_tag"></canvas>
-    </div>
-    <h1>動画タイトルの頻出ワードのワードクラウド</h1>
-    <div class="wordcloud-panel">
-        <canvas id="wordCloud_word"></canvas>
-    </div>
+    <div id="comparisonStatus"></div>
+    <div id="comparisonResults"></div>
+  </section>
 
-    <h1>再生数に結びつきやすい単語(strong_words)の量によるバズ傾向の分類</h1>
-    <div>「最高」「神曲」「泣いた」「衝撃」「ブレイクダウン」など、視聴者の印象に残りやすい語がいくつあるのかを<br>
-    transcriptとcommentでstrong_wordsとして計算しています</div>
-    <div>※いずれの数値も対数で算出しています</div>
-    <ul>
-        <li>transcriptとcomment両方のstrong_wordsスコアが高い→本物バズ</li>
-        <li>transciptのみstrong_wordsスコアが高い→釣り・内容先行型</li>
-        <li>commentのみstrong_wordsスコアが高い→共感型</li>
-        <li>どちらもスコアが低い→低反応型</li>
-    </ul>
-    <div>各しきい値:全体の75%</div>
-    <canvas id="strongWordsScatter"></canvas>
-
-    <section class="compare-panel">
-        <h1>動画比較</h1>
-        <div class="compare-controls">
-            <label>
-                動画タイトル
-                <select id="compareVideoSelect" multiple></select>
-            </label>
-            <button type="button" id="compareVideosButton">選択した動画を比較</button>
-        </div>
-        <div id="comparisonStatus"></div>
-        <div id="comparisonResults"></div>
-    </section>
-
+  <h1>LightGBMモデルの選定</h1>
+  <div id="models">
+    <div id="best_model"></div>
+    <div id="best_model_index"></div>
+    <div id="models_detail"></div>
+  </div>
+  
 </body>
 </html>

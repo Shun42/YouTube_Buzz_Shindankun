@@ -1,55 +1,55 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YOUTUBE BUZZ ANALYZER</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/input_style.css') }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YOUTUBE BUZZ ANALYZER</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/input_style.css') }}">
 </head>
 <body>
-    <main class="container">
-        <div class="badge">PROCESSING</div>
+  <main class="container">
+    <div class="badge">PROCESSING</div>
 
-        <h1>YOUTUBE BUZZ ANALYZER</h1>
+    <h1>YOUTUBE BUZZ ANALYZER</h1>
 
-        <p id="processingStatus" class="description">
-            分析実行中…<br>
-            ブラウザの画面を開いたままにしておいてください。
-        </p>
+    <p id="processingStatus" class="description">
+      分析実行中…<br>
+      ブラウザの画面を開いたままにしておいてください。
+    </p>
 
-        <p class="footer-text">
-            Python / Flask / YouTube Data API / NLP
-        </p>
-    </main>
+    <p class="footer-text">
+      Python / Flask / YouTube Data API / NLP
+    </p>
+  </main>
 
-    <script>
-        const jobId = "{{ job_id }}";
-        const statusElement = document.getElementById("processingStatus");
+  <script>
+    const jobId = "{{ job_id }}";
+    const statusElement = document.getElementById("processingStatus");
 
-        async function pollJobStatus() {
-            try {
-                const response = await fetch(`/api/job_status/${jobId}`);
-                const job = await response.json();
-                // 与えられたJOBS辞書の内容によって分岐
-                if (job.status === "done") {
-                    statusElement.textContent = "Processing finished. Redirecting...";
-                    window.location.href = job.result_url;
-                    return;
-                }
-
-                if (job.status === "error") {
-                    statusElement.textContent = `Processing failed: ${job.error}`;
-                    return;
-                }
-
-                setTimeout(pollJobStatus, 2000);
-            } catch (error) {
-                statusElement.textContent = "Could not check processing status. Retrying...";
-                setTimeout(pollJobStatus, 3000);
-            }
+    async function pollJobStatus() {
+      try {
+        const response = await fetch(`/api/job_status/${jobId}`);
+        const job = await response.json();
+        // 与えられたJOBS辞書の内容によって分岐
+        if (job.status === "done") {
+          statusElement.textContent = "Processing finished. Redirecting...";
+          window.location.href = job.result_url;
+          return;
         }
 
-        pollJobStatus();
-    </script>
+        if (job.status === "error") {
+          statusElement.textContent = `Processing failed: ${job.error}`;
+          return;
+        }
+
+        setTimeout(pollJobStatus, 2000);
+      } catch (error) {
+        statusElement.textContent = "Could not check processing status. Retrying...";
+        setTimeout(pollJobStatus, 3000);
+      }
+    }
+
+    pollJobStatus();
+  </script>
 </body>
 </html>

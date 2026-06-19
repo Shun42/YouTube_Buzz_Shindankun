@@ -1,121 +1,5 @@
 import pandas as pd
 import numpy as np
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-from openpyxl import Workbook
-from openpyxl.drawing.image import Image
-from pathlib import Path
-import re
-from collections import Counter
-import MeCab
-import ipadic
-import unicodedata
-from JaStopwordFilter import JaStopwordFilter
-
-def _safe_sheet_name(column_name, used_names):
-    sheet_name = re.sub(r"[\[\]:*?/\\]", "_", str(column_name))[:31] or "column"
-    base_name = sheet_name
-    index = 1
-
-    while sheet_name in used_names:
-        suffix = f"_{index}"
-        sheet_name = f"{base_name[:31 - len(suffix)]}{suffix}"
-        index += 1
-
-    used_names.add(sheet_name)
-    return sheet_name
-
-
-def _safe_file_name(column_name):
-    return re.sub(r"[\[\]:*?/\\]", "_", str(column_name))[:80] or "column"
-
-
-def _normal_pdf(x, mean, std):
-    return (1 / (std * np.sqrt(2 * np.pi))) * np.exp(-0.5 * ((x - mean) / std) ** 2)
-
-
-def export_column_distributions_to_excel(
-    df_unprocessed,
-    output_path="backend/data/column_distributions.xlsx",
-):
-    output_path = Path(output_path)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    image_dir = output_path.parent / "column_distribution_images"
-    image_dir.mkdir(parents=True, exist_ok=True)
-
-    numeric_df = df_unprocessed.select_dtypes(include="number")
-    numeric_df = numeric_df.drop(columns=["likeCount_norm", "commentCount_norm", "subscriberCount_norm"], errors="ignore")
-
-    wb = Workbook()
-    summary_ws = wb.active
-    summary_ws.title = "summary"
-    summary_ws.append(["column", "count", "mean", "median", "std", "min", "max", "skew", "kurtosis"])
-
-    used_sheet_names = {"summary"}
-
-    for index, column in enumerate(numeric_df.columns, start=1):
-        values = numeric_df[column].replace([np.inf, -np.inf], np.nan).dropna()
-        if values.empty:
-            continue
-
-        mean = values.mean()
-        median = values.median()
-        std = values.std()
-        min_value = values.min()
-        max_value = values.max()
-        skew = values.skew()
-        kurtosis = values.kurtosis()
-
-        summary_ws.append([
-            column,
-            int(values.count()),
-            mean,
-            median,
-            std,
-            min_value,
-            max_value,
-            skew,
-            kurtosis,
-        ])
-
-        plt.figure(figsize=(8, 5))
-        plt.hist(values, bins=30, density=True, alpha=0.65, color="#4C78A8", edgecolor="white")
-
-        if std and not np.isnan(std) and std > 0:
-            x = np.linspace(min_value, max_value, 200)
-            plt.plot(x, _normal_pdf(x, mean, std), color="#F58518", linewidth=2, label="normal curve")
-            plt.legend()
-
-        plt.title(f"{column} distribution")
-        plt.xlabel(column)
-        plt.ylabel("density")
-        plt.tight_layout()
-
-        image_path = image_dir / f"{index:03d}_{_safe_file_name(column)}.png"
-        plt.savefig(image_path, dpi=150)
-        plt.close()
-
-        ws = wb.create_sheet(_safe_sheet_name(column, used_sheet_names))
-        ws["A1"] = "column"
-        ws["B1"] = column
-        ws["A2"] = "count"
-        ws["B2"] = int(values.count())
-        ws["A3"] = "mean"
-        ws["B3"] = mean
-        ws["A4"] = "median"
-        ws["B4"] = median
-        ws["A5"] = "std"
-        ws["B5"] = std
-        ws["A6"] = "skew"
-        ws["B6"] = skew
-        ws["A7"] = "kurtosis"
-        ws["B7"] = kurtosis
-        ws.add_image(Image(str(image_path)), "A9")
-
-    wb.save(output_path)
-    return output_path
-
 
 # 動画時間を8つにわけて、それぞれにtranscriptがいくつあるか計算
 def word_count(df):
@@ -153,13 +37,13 @@ def outliner_remove(df):
 
 # JSで表示する際にjsonで渡す用のdfの加工
 def data_process(shap_importance_df, df_unprocessed, conn, raw_transcript_SQL_order, trend_comment_SQL_order, trend_tag_SQL_order, trend_word_SQL_order):
-    shap_importance_df_output = shap_importance_df.head(25)
+    shap_importance_df_output = shap_importance_df.head(15)
     shap_importance_df_output = shap_importance_df_output[
     ~shap_importance_df_output["feature"].isin(["高評価数", "コメント数", "登録者数"])]
     df_unprocessed = df_unprocessed.drop(columns=["likeCount_norm", "commentCount_norm", "subscriberCount_norm"], errors="ignore")
     
     # 各特徴量を日本語にする
-    scatter_df = df_unprocessed.rename(columns={"viewCount": "view_count", "likeCount": "高評価数", "commentCount":"コメント数","subscriberCount": "登録者数", "like_rate": "再生数あたりの高評価率", "comment_rate": "再生数あたりのコメント数",
+    scatter_df = df_unprocessed.rename(columns={"title": "タイトル", "viewCount": "view_count", "likeCount": "高評価数", "commentCount":"コメント数","subscriberCount": "登録者数", "like_rate": "再生数あたりの高評価率", "comment_rate": "再生数あたりのコメント数",
                         "title_length": "タイトル長", "curiosity_score": "興味を引く単語数(タイトル)", "benefit_score": "ハウツー系単語数(タイトル)", "emotion_score": "感情単語数(タイトル)", "nagative_score": "ネガティブ単語数(タイトル)",
                         "emphasis_score": "強調単語数(タイトル)", "question_flag": "？が含まれているか(タイトル)", "exclamation_count": "！が含まれているか(タイトル)", "has_number": "数字が含まれているか(タイトル)", "cover_flag": "カバー動画かどうか(タイトル)",
                         "trend_score": "トレンドワードの影響度(タイトル)", "tag_count": "動画タグ数", "tags_trend_score": "トレンドワードの影響度(タグ)", "positive_comment_score": "ポジティブ度(コメント)", "negative_comment_score": "ネガティブ度(コメント)", "comment_praise_score" :"賞賛単語数(コメント)",
@@ -181,7 +65,7 @@ def data_process(shap_importance_df, df_unprocessed, conn, raw_transcript_SQL_or
     trend_tag_df = trend_tag_df.drop(columns="collectedAt", errors="ignore")
     trend_word_df = trend_word_df.drop(columns="collectedAt", errors="ignore")
     df = df_unprocessed.sort_values("viewCount", ascending=False)
-
+    print(df.info())
     # 50つの動画のデータと、前動画の中央値を同じoutput_dfにする
     df_head = df.head(50).copy()
     mean_row = df.mean(numeric_only=True).to_frame().T

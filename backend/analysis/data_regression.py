@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, mean_squared_log_error
 import lightgbm as lgb
 import matplotlib
 matplotlib.use("Agg")
@@ -124,28 +124,6 @@ def data_preprocessing(conn, video_SQL_order, comment_SQL_order, transcript_SQL_
     feature_df.to_csv("backend/data/preprocessing.csv", index=False)
     return feature_df, feature_df_unprocessed
 
-# randomforestによる回帰分析
-def randomforest_regression(feature_df, feature_df_unprocessed):
-    df, df_unprocessed = _prepare_model_data(feature_df, feature_df_unprocessed)
-    df = df.rename(columns=FEATURE_LABELS)
-    df.to_csv("backend/data/randomforest_df.csv", index=False)
-    # 訓練用データとテストデータに分ける
-    df_x, df_y = _split_features_target(df)
-    x_train, x_test, y_train, y_test = train_test_split(df_x, df_y, test_size=0.2, random_state=123)
-    # 学習
-    model = RandomForestRegressor(random_state = 123)
-    model.fit(x_train, y_train)
-    train_score = model.score(x_train, y_train)
-    test_score = model.score(x_test, y_test)
-
-    print(f"学習データに対するスコアは{train_score}です")
-    print(f"テストデータに対するスコアは{test_score}です")
-
-    # SHAP値の計算
-    shap.initjs() 
-    shap_importance_df = _shap_importance_df(model, x_test, x_train)
-
-    return shap_importance_df, df_unprocessed
 
 # LightGBMによる回帰分析
 def lightgbm_regression(feature_df, feature_df_unprocessed):
@@ -153,33 +131,79 @@ def lightgbm_regression(feature_df, feature_df_unprocessed):
     df = df.rename(columns=FEATURE_LABELS)
     df_x, df_y = _split_features_target(df)
     # 訓練用データとテストデータに分ける
-    x_train, x_test, y_train, y_test = train_test_split(df_x, df_y, test_size=0.2, random_state=123)
-    dtrain = lgb.Dataset(x_train, y_train)
-    dvalid = lgb.Dataset(x_test, y_test, reference=dtrain)
-    params = {
-        "objective": "regression",
-        "metric": "rmse",
-        "verbosity": -1,
-        "seed": 123,
+    X_train, X_test, y_train, y_test = train_test_split(df_x, df_y, test_size=0.2, random_state=123)
+
+    models = {
+        "regression_log1p": {
+            "model": lgb.LGBMRegressor(objective="regression"),
+            "y_transform": "log1p",
+        },
+        "poisson": {
+            "model": lgb.LGBMRegressor(objective="poisson"),
+            "y_transform": None,
+        },
+        "tweedie": {
+            "model": lgb.LGBMRegressor(objective="tweedie"),
+            "y_transform": None,
+        },
     }
-    model = lgb.train(
-        params,
-        dtrain,
-        valid_sets=[dvalid],
-        valid_names=["valid"],
-        callbacks=[lgb.early_stopping(10, verbose=False)],
-    )
-    pred = model.predict(x_test, num_iteration=model.best_iteration)
-    # 訓練データで学習
-    rmse = np.sqrt(mean_squared_error(y_test, pred))
-    mae = mean_absolute_error(y_test, pred)
-    r2 = r2_score(y_test, pred)
+    results = []
 
-    print(f"\n基本モデルの評価指標:")
-    print(f"RMSE: {rmse:.2f}")
-    print(f"MAE: {mae:.2f}")
-    print(f"R2: {r2:.4f}")
+    for model_name, model_info in models.items():
+        if model_name == "regression_log1p":
+            model_name = "通常回帰"
+        elif model_name == "poisson":
+            model_name = "ポアソン回帰"
+        elif model_name == "tweedie":
+            model_name = "Tweedie回帰"
+        model = model_info["model"]
+        y_transform = model_info.get("y_transform", None)
+
+        if y_transform == "log1p":
+            model.fit(X_train, np.log1p(y_train))
+            y_pred = np.expm1(model.predict(X_test))
+        else:
+            model.fit(X_train, y_train)
+            y_pred = model.predict(X_test)
+
+        y_pred = np.maximum(y_pred, 0)
+
+        rmsle = np.sqrt(mean_squared_log_error(y_test, y_pred))
+        mae = mean_absolute_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+
+        results.append({
+            "model_name": model_name,
+            "model": model,
+            "rmsle": rmsle,
+            "mae": mae,
+            "r2": r2,
+        })
+
+    best_result = min(results, key=lambda x: x["rmsle"])
+    best_model = best_result["model"]
+    best_model_name = best_result["model_name"]
+
+    print("Best model:", best_model_name)
+    print("RMSLE:", best_result["rmsle"])
+
+    models_output = []
+    for result in results:
+        models_output.append({
+            "model_name": result["model_name"],
+            "rmsle": float(result["rmsle"]),
+            "mae": float(result["mae"]),
+            "r2": float(result["r2"]),
+        })
+
     # SHAP値を計算
-    shap_importance_df = _shap_importance_df(model, x_test)
+    shap_importance_df = _shap_importance_df(best_model, X_test)
 
-    return shap_importance_df, df_unprocessed
+    best_result_model = {
+        "model_name": best_model_name,
+        "rmsle": float(best_result["rmsle"]),
+        "mae": float(best_result["mae"]),
+        "r2": float(best_result["r2"]),
+    }
+
+    return shap_importance_df, df_unprocessed, models_output, best_result_model

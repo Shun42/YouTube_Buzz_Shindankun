@@ -38,11 +38,11 @@ def update_job(job_id, **values):
 
 # run関数で生成されたjob_id, run_modeを引数にして実処理を行う
 def run_background_job(job_id, run_mode):
-    global shap_importance_df_output, scatter_df, buzz_videos_df, non_buzz_videos_df, trend_comment_df, trend_tag_df, trend_word_df, output_df, strong_words_scatter_df
+    global shap_importance_df_output, scatter_df, buzz_videos_df, non_buzz_videos_df, trend_comment_df, trend_tag_df, trend_word_df, output_df, strong_words_scatter_df, models_output, best_result_model
 
     try:
         if run_mode == "analyze":
-            shap_importance_df_output, scatter_df, buzz_videos_df, non_buzz_videos_df, trend_comment_df, trend_tag_df, trend_word_df, output_df, strong_words_scatter_df = main_process.analyze()
+            shap_importance_df_output, scatter_df, buzz_videos_df, non_buzz_videos_df, trend_comment_df, trend_tag_df, trend_word_df, output_df, strong_words_scatter_df, models_output, best_result_model = main_process.analyze()
             update_job(job_id, status="done", result_url="/result")
         elif run_mode == "collect":
             main_process.collect()
@@ -132,6 +132,15 @@ def register_routes(app):
         ]
         return render_template("result_chart.html", feature_labels=feature_labels)
     
+    @app.route("/api/model_details", methods=["GET"])
+    def model_display():
+        if "models_output" not in globals() or "best_result_model" not in globals():
+            return jsonify({"error": "model details are not ready"}), 404
+        return jsonify({
+            "best_model": best_result_model,
+            "models": models_output
+        })
+
     # SHAPグラフに渡すjsonデータの作成
     @app.route("/api/shap", methods=["GET"])
     def shap_chart():
@@ -144,43 +153,7 @@ def register_routes(app):
             })
 
         return jsonify(shap_data)
-    # 散布図に渡すバズ動画のjsonデータの作成
-    @app.route("/api/scatter/highbuzz/<feature>", methods=["GET"])
-    def scatter_chart_highbuzz(feature):
-        if feature not in scatter_df.columns:
-            return jsonify({"error": "feature not found"}), 400
-        filtered_scatter_df = outliner_remove(scatter_df, feature)
-        scatter_df_drop = filtered_scatter_df.drop(columns=["video_id"], errors="ignore")
-        scatter_data_high_buzz = []
-        threshold_high_buzz = scatter_df_drop["view_count"].quantile(0.8)
-        scatter_df_high_buzz = scatter_df_drop.query('view_count >= @threshold_high_buzz')
 
-        for _, row in scatter_df_high_buzz.iterrows():
-
-            scatter_data_high_buzz.append({
-                "x": row["view_count"],
-                "y": row[feature]
-            })
-        
-        return jsonify(scatter_data_high_buzz)
-    
-    # 散布図に渡す非バズ動画のjsonデータの作成
-    @app.route("/api/scatter/lowbuzz/<feature>", methods=["GET"])
-    def scatter_chart_lowbuzz(feature):
-        if feature not in scatter_df.columns:
-            return jsonify({"error": "feature not found"}), 400
-        filtered_scatter_df = outliner_remove(scatter_df, feature)
-        scatter_data_low_buzz = []
-        threshold_low_buzz = filtered_scatter_df["view_count"].quantile(0.2)
-        scatter_df_low_buzz = filtered_scatter_df.query('view_count <= @threshold_low_buzz')
-
-        for _, row in scatter_df_low_buzz.iterrows():
-
-            scatter_data_low_buzz.append({
-                "x": row["view_count"],
-                "y": row[feature]
-            })
-        return jsonify(scatter_data_low_buzz)
     
     # 時系列グラフに渡すバズ動画のjsonデータの作成
     @app.route("/api/timeline/buzz/", methods=["GET"])
@@ -258,6 +231,26 @@ def register_routes(app):
             "transcript": float(transcript_threshold),
             "comments": float(comments_threshold)
         }}
+        return jsonify(strong_words_scatter_data)
+    
+    @app.route("/api/strong_words_scatter_output/", methods=["GET"])
+    def strong_words_scatter_output():
+        strong_words_scatter_data = []
+        strong_words_scatter_output_df = strong_words_scatter_df[["video_id", "title", "strong_transcript_score", "strong_comment_score"]].copy()
+        transcript_threshold = strong_words_scatter_output_df["strong_transcript_score"].quantile(0.75)
+        comments_threshold = strong_words_scatter_output_df["strong_comment_score"].quantile(0.75)
+        strong_words_scatter_output_df["buzz_type"] = strong_words_scatter_output_df.apply(classify, args=(transcript_threshold, comments_threshold),axis=1)
+        strong_comments_transcript_video_df = strong_words_scatter_output_df[strong_words_scatter_output_df["buzz_type"] == "本物バズ"].head(1)
+        strong_comments_video_df = strong_words_scatter_output_df[strong_words_scatter_output_df["buzz_type"] == "共感型"].head(1)
+        strong_transcripts_video_df = strong_words_scatter_output_df[strong_words_scatter_output_df["buzz_type"] == "釣り・内容先行型"].head(1)
+        non_strong_video_df = strong_words_scatter_output_df[strong_words_scatter_output_df["buzz_type"] == "低反応型"].head(1)
+        df = pd.concat([strong_comments_transcript_video_df, strong_comments_video_df, strong_transcripts_video_df, non_strong_video_df], ignore_index=True)
+        for _, row in df.iterrows():
+            strong_words_scatter_data.append({
+                "video_id": str(row["video_id"]),
+                "title": str(row["title"]),
+                "buzz_type": str(row["buzz_type"])
+            })
         return jsonify(strong_words_scatter_data)
     
     @app.route("/api/analyze_videos/", methods=["GET"])

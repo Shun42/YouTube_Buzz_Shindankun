@@ -75,14 +75,12 @@ def analyze():
         trend_comment_SQL_order = SQL_statement.trend_comment_SQL()
         trend_tag_SQL_order = SQL_statement.trend_tag_SQL()
         trend_word_SQL_order = SQL_statement.trend_word_SQL()
-        # shap_importance_df, df_unprocessed = data_regression.randomforest_regression(feature_df, feature_df_unprocessed)
-        shap_importance_df, df_unprocessed = data_regression.lightgbm_regression(feature_df, feature_df_unprocessed)
+        shap_importance_df, df_unprocessed, models_output, best_result_model = data_regression.lightgbm_regression(feature_df, feature_df_unprocessed)
         shap_importance_df_output, scatter_df, buzz_videos_df, non_buzz_videos_df, trend_comment_df, trend_tag_df, trend_word_df, output_df, strong_words_scatter_df = data_processing.data_process(shap_importance_df, df_unprocessed, conn, raw_transcript_SQL_order,
                                                                                                             trend_comment_SQL_order, trend_tag_SQL_order, trend_word_SQL_order)
-        # data_processing.export_column_distributions_to_excel(df_unprocessed)
 
     finally:
         conn.close()
     
     
-    return shap_importance_df_output, scatter_df, buzz_videos_df, non_buzz_videos_df, trend_comment_df, trend_tag_df, trend_word_df, output_df, strong_words_scatter_df
+    return shap_importance_df_output, scatter_df, buzz_videos_df, non_buzz_videos_df, trend_comment_df, trend_tag_df, trend_word_df, output_df, strong_words_scatter_df, models_output, best_result_model

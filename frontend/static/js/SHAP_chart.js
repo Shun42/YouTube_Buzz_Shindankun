@@ -5,43 +5,43 @@ let SHAP_chart;
 
 // グラフを作る関数
 export async function createSHAPChart() {
-    // Flask APIへアクセス
-    const shap_data = await fetchJson("/api/shap");
-    const labels = shap_data.map(item => item.feature);
-    const importances = shap_data.map(item => item.importance);
-    console.log(shap_data);
-    // canvas取得
-    const ctx = document.getElementById("SHAPChart");
-    // 既存グラフがあるなら削除
-    if (SHAP_chart) {
-        SHAP_chart.destroy();
-    }
-    // Chart.js生成
-    SHAP_chart = new Chart(ctx, {
+  // Flask APIへアクセス
+  const shap_data = await fetchJson("/api/shap");
+  const labels = shap_data.map(item => item.feature);
+  const importances = shap_data.map(item => item.importance);
+  console.log(shap_data);
+  // canvas取得
+  const ctx = document.getElementById("SHAPChart");
+  // 既存グラフがあるなら削除
+  if (SHAP_chart) {
+    SHAP_chart.destroy();
+  }
+  // Chart.js生成
+  SHAP_chart = new Chart(ctx, {
 
-        type: "bar",
-        data: {
-            labels: labels,
-            datasets: [{
-                label: "SHAP値",
-                data: importances,
-            }]
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: "再生数への影響度",
+        data: importances,
+      }]
+    },
+    options: {
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: "要素"
+          }
         },
-        options: {
-            scales: {
-                x: {
-                    title: {
-                        display: true,
-                        text: "特徴量"
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: "SHAP値"
-                    }
-                }
-            }
+        y: {
+          title: {
+            display: true,
+            text: "再生数への影響度"
+          }
         }
-    });
+      }
+    }
+  });
 }
