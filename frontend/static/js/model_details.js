@@ -11,7 +11,7 @@ export async function MODELDETAILSDISPLAY() {
     return;
   }
 
-
+// modelDetails.modelsの内容をまずhtml列にしてからそれらを空白無しでjoinする
   const modelsHtml = modelDetails.models.map((modelInfo) => {
     return `
       <tr>
@@ -23,6 +23,7 @@ export async function MODELDETAILSDISPLAY() {
     `;
   }).join("");
 
+  // bestModelContainer内にHTMLを入れる
   bestModelContainer.innerHTML = `<p>最も正確だったモデルは${bestModelInfo.model_name}です。</p>`;
   bestModelIndexContainer.innerHTML = `
     <ul>

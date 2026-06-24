@@ -65,7 +65,6 @@ def data_process(shap_importance_df, df_unprocessed, conn, raw_transcript_SQL_or
     trend_tag_df = trend_tag_df.drop(columns="collectedAt", errors="ignore")
     trend_word_df = trend_word_df.drop(columns="collectedAt", errors="ignore")
     df = df_unprocessed.sort_values("viewCount", ascending=False)
-    print(df.info())
     # 50つの動画のデータと、前動画の中央値を同じoutput_dfにする
     df_head = df.head(50).copy()
     mean_row = df.mean(numeric_only=True).to_frame().T

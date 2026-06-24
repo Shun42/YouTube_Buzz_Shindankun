@@ -1,6 +1,7 @@
 
 import { fetchJson } from "./fetch_json.js";
 
+// APIからjsonの情報を取得する
 export async function createStrongWordsScatter() {
   const result = await fetchJson("/api/strong_words_scatter/");
   const strong_words_scatter_data = await fetchJson("/api/strong_words_scatter_output/");
@@ -16,7 +17,7 @@ export async function createStrongWordsScatter() {
     "共感型": "rgba(54, 162, 235, 0.8)",
     "低反応型": "rgba(150, 150, 150, 0.6)"
   };
-
+  // strong_words_scatter_dataからhtmlを作って複数のhtmlを空白無しでjoinする
   const strong_words_scatter_Html = strong_words_scatter_data.map((strong_words_scatter_Info) => {
     return `
       <tr>
@@ -51,11 +52,15 @@ export async function createStrongWordsScatter() {
     "共感型": [],
     "低反応型": []
   };
-
+  // rawDataの各データを、buzz_typeと同じ名前の配列へ追加する
+  // rawData.forEachは、rawDataに入っている要素を、先頭から1件ずつ取り出す
+  // groupedData[item.buzz_type]は、item.buzz_typeの値をキーとして、groupedDataの配列を取得
   rawData.forEach(item => {
     groupedData[item.buzz_type].push(item);
   });
-
+  // Object.keys(groupedData)で、オブジェクトのキーを配列として取得する
+  //["本物バズ", "釣り・内容先行型", "共感型", "低反応型"]のようなキーが取得される
+  // .map(type => { ... })で、取得した4つのキーをそれぞれChart.js用のオブジェクトへ変換する
   const datasets = Object.keys(groupedData).map(type => {
     return {
       label: type,

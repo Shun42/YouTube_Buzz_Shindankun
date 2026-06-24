@@ -1,3 +1,5 @@
+import logging
+
 from flask import Flask
 from apps import route
 
@@ -7,5 +9,6 @@ def create_app():
         template_folder="../../frontend/templates",
         static_folder="../../frontend/static",
     )
+    logging.getLogger("werkzeug").setLevel(logging.ERROR)
     route.register_routes(flaskapp)
     return flaskapp

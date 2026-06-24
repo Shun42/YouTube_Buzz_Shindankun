@@ -184,8 +184,6 @@ def lightgbm_regression(feature_df, feature_df_unprocessed):
     best_model = best_result["model"]
     best_model_name = best_result["model_name"]
 
-    print("Best model:", best_model_name)
-    print("RMSLE:", best_result["rmsle"])
 
     models_output = []
     for result in results:

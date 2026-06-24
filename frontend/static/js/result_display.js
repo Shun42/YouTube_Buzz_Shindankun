@@ -7,7 +7,7 @@ export async function loadCompareVideoOptions() {
   const videos = await fetchJson("/api/analyze_videos/");
   const select = document.getElementById("compareVideoSelect");
   select.innerHTML = "";
-
+  // videos.forEachは、videosに入っている要素を、先頭から1件ずつ取り出す
   videos.forEach(video => {
     const option = document.createElement("option");
     option.value = video.video_id;
@@ -20,6 +20,7 @@ function destroyComparisonCharts() {
   comparisonCharts.forEach(chart => chart.destroy());
   comparisonCharts = [];
 }
+
 // comparisonsのdeviationをChart.jsに渡す
 function createDeviationChart(canvas, video) {
   const comparisons = video.comparisons.filter(item => item.deviation !== null);
