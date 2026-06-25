@@ -53,6 +53,16 @@ form {
   gap: 16px;
 }
 
+.collection-mode-field {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.collection-mode-field.is-hidden {
+  display: none;
+}
+
 label {
   text-align: left;
   color: #4f6367;

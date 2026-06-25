@@ -25,6 +25,14 @@
         <option value="NLP_analyze">NLP分析</option>
       </select>
 
+      <div id="collectionModeField" class="collection-mode-field is-hidden">
+        <label for="collection_mode">Collection Mode</label>
+        <select id="collection_mode" name="collection_mode" disabled>
+          <option value="short">短縮モード</option>
+          <option value="normal" selected>通常モード</option>
+        </select>
+      </div>
+
       <button id="triggerButton" type="submit">Run Analysis</button>
     </form>
     <div class="features">
@@ -37,5 +45,19 @@
       Python / Flask / YouTube Data API / NLP
     </p>
   </main>
+  <script>
+    const modeSelect = document.getElementById("mode");
+    const collectionModeField = document.getElementById("collectionModeField");
+    const collectionModeSelect = document.getElementById("collection_mode");
+
+    function updateCollectionModeVisibility() {
+      const isCollectMode = modeSelect.value === "collect";
+      collectionModeField.classList.toggle("is-hidden", !isCollectMode);
+      collectionModeSelect.disabled = !isCollectMode;
+    }
+
+    modeSelect.addEventListener("change", updateCollectionModeVisibility);
+    updateCollectionModeVisibility();
+  </script>
 </body>
 </html>

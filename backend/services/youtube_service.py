@@ -36,7 +36,7 @@ def get_youtube_client():
     return youtube
 
 # youtubeの動画データの取得
-def youtube_search(youtube, search_list, KEYWORD):
+def youtube_search(youtube, search_list, KEYWORD, max_results=50):
     video_ids = []
     failed_searches = []
     keyword = KEYWORD
@@ -49,7 +49,7 @@ def youtube_search(youtube, search_list, KEYWORD):
                 "type": item[2],
                 "order": item[3],
                 "publishedAfter": item[4],
-                "maxResults": 50,
+                "maxResults": max_results,
                 "relevanceLanguage": item[5],
 
             }

@@ -28,10 +28,10 @@ def _process_comment_data(comment_df):
     return comment_df
 
 # 起動モードがデータ収集だった場合のパイプライン
-def collect():
+def collect(max_results=50):
     KEYWORD, search_list = config.create_config()
     youtube = youtube_service.get_youtube_client()
-    video_ids, keyword = youtube_service.youtube_search(youtube, search_list, KEYWORD)
+    video_ids, keyword = youtube_service.youtube_search(youtube, search_list, KEYWORD, max_results)
     statistics = youtube_service.get_statistics(video_ids)
     raw_video_datas = youtube_service.processing_response(statistics, keyword)
     video_datas = youtube_service.get_subscribers(raw_video_datas)

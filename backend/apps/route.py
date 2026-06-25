@@ -13,13 +13,14 @@ JOBS_LOCK = threading.Lock()
 
 # 外れ値除去
 def outliner_remove(df, feature):
-    if feature not in scatter_df.select_dtypes(include="number").columns:
+    if feature not in df.select_dtypes(include="number").columns:
         return jsonify({"error": "numeric feature not found"}), 400
-    q1 = df[feature].quantile(0.25)
-    q3 = df[feature].quantile(0.75)
-    iqr = q3 - q1
-    lower = q1 - 1.5 * iqr
-    upper = q3 + 1.5 * iqr
+    mean = df[feature].mean()
+    std = df[feature].std()
+    if pd.isna(std) or std == 0:
+        return df.copy()
+    lower = mean - 3 * std
+    upper = mean + 3 * std
     return df[(df[feature] >= lower) & (df[feature] <= upper)].copy()
 
 def to_json_number(value):
@@ -37,7 +38,7 @@ def update_job(job_id, **values):
             JOBS[job_id].update(values)
 
 # run関数で生成されたjob_id, run_modeを引数にして実処理を行う
-def run_background_job(job_id, run_mode):
+def run_background_job(job_id, run_mode, max_results):
     global shap_importance_df_output, scatter_df, buzz_videos_df, non_buzz_videos_df, trend_comment_df, trend_tag_df, trend_word_df, output_df, strong_words_scatter_df, models_output, best_result_model
 
     try:
@@ -45,7 +46,7 @@ def run_background_job(job_id, run_mode):
             shap_importance_df_output, scatter_df, buzz_videos_df, non_buzz_videos_df, trend_comment_df, trend_tag_df, trend_word_df, output_df, strong_words_scatter_df, models_output, best_result_model = main_process.analyze()
             update_job(job_id, status="done", result_url="/result")
         elif run_mode == "collect":
-            main_process.collect()
+            main_process.collect(max_results)
             update_job(job_id, status="done", result_url="/complete")
         elif run_mode == "NLP_analyze":
             main_process.NLP_processing()
@@ -85,6 +86,12 @@ def register_routes(app):
     @app.route("/run", methods=["POST"])
     def run():
         run_mode = request.form.get("mode")
+        collection_mode = request.form.get("collection_mode", "normal")
+        max_results_by_collection_mode = {
+            "short": 1,
+            "normal": 50,
+        }
+        max_results = max_results_by_collection_mode.get(collection_mode, 50)
 
         # job_idを作りHTML内に埋め込みprocessing.htmlに送る
         job_id = uuid.uuid4().hex
@@ -94,6 +101,8 @@ def register_routes(app):
             JOBS[job_id] = {
                 "status": "running",
                 "mode": run_mode,
+                "collection_mode": collection_mode,
+                "max_results": max_results,
                 "result_url": None,
                 "error": None
             }
@@ -101,7 +110,7 @@ def register_routes(app):
         # 別スレッドで実処理を行う
         thread = threading.Thread(
             target=run_background_job,
-            args=(job_id, run_mode),
+            args=(job_id, run_mode, max_results),
             daemon=True
         )
         thread.start()
